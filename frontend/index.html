@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>반도체 AI 비서</title>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    // 저장된 테마를 그리기 전에 적용해 깜빡임을 막는다
+    try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <h1>반도체 생산지수 AI 비서</h1>
+      <span class="sub">KOSIS 반도체 및 부품 생산지수(2020=100)를 아는 챗봇</span>
+    </div>
+    <div class="top-actions">
+      <span id="server-status" class="pill">서버 확인 중…</span>
+      <button id="theme-toggle" class="btn ghost" type="button" aria-label="다크 모드 전환">🌙 다크</button>
+    </div>
+  </header>
+
+  <div id="wake-banner" class="banner" hidden>
+    무료 서버(Render)가 잠들어 있어서 깨우는 중이에요. 첫 접속은 최대 1분 정도 걸릴 수 있어요.
+  </div>
+
+  <nav class="tabs" aria-label="화면 전환 (모바일)">
+    <button type="button" data-tab="history">대화 기록</button>
+    <button type="button" data-tab="chat" class="active">채팅</button>
+    <button type="button" data-tab="data">데이터</button>
+  </nav>
+
+  <main class="layout">
+    <!-- 대화 기록 -->
+    <aside class="panel history" data-panel="history">
+      <div class="panel-head">
+        <h2>대화 기록</h2>
+        <button id="new-chat" class="btn small" type="button">+ 새 대화</button>
+      </div>
+      <ul id="conv-list" class="conv-list"></ul>
+    </aside>
+
+    <!-- 채팅 -->
+    <section class="panel chat active" data-panel="chat">
+      <div class="panel-head">
+        <h2 id="chat-title">새 대화</h2>
+      </div>
+      <div id="messages" class="messages" aria-live="polite">
+        <div class="empty-chat">
+          <p>저장된 반도체 생산 데이터를 바탕으로 답해요.</p>
+          <div class="chips">
+            <button type="button" class="chip">최근 반도체 생산 흐름이 어때?</button>
+            <button type="button" class="chip">생산이 가장 많았던 달은 언제야?</button>
+            <button type="button" class="chip">2022년 불황 때는 얼마나 떨어졌어?</button>
+            <button type="button" class="chip">코로나 시기에는 어땠어?</button>
+          </div>
+        </div>
+      </div>
+      <form id="chat-form" class="chat-form">
+        <textarea id="chat-input" rows="1" maxlength="1000" placeholder="질문을 입력하세요" required></textarea>
+        <button id="send-btn" class="btn primary" type="submit">전송</button>
+      </form>
+    </section>
+
+    <!-- 데이터 -->
+    <section class="panel data" data-panel="data">
+      <div class="panel-head">
+        <h2>데이터 요약</h2>
+        <button id="refresh-data" class="btn small ghost" type="button">새로고침</button>
+      </div>
+      <div id="summary" class="summary-grid"></div>
+
+      <h3>생산지수 추이</h3>
+      <div class="chart-legend">
+        <span><i class="swatch s1"></i>월별 생산지수</span>
+        <span><i class="swatch s2"></i>12개월 이동평균</span>
+      </div>
+      <div id="chart" class="chart" role="img" aria-label="월별 반도체 생산지수와 12개월 이동평균 추이 그래프">
+        <div id="chart-tip" class="chart-tip" hidden></div>
+      </div>
+
+      <h3>데이터 관리</h3>
+      <form id="add-form" class="add-form">
+        <input id="add-date" type="month" required aria-label="날짜">
+        <input id="add-value" type="number" step="0.1" min="0" max="1000" placeholder="지수" required aria-label="값">
+        <input id="add-memo" type="text" maxlength="200" placeholder="메모" aria-label="메모">
+        <button class="btn primary small" type="submit">추가</button>
+      </form>
+      <div class="export">
+        <span id="data-count" class="muted"></span>
+        <button id="export-csv" class="btn small ghost" type="button">CSV 내보내기</button>
+        <button id="export-json" class="btn small ghost" type="button">JSON 내보내기</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>날짜</th><th>지수</th><th>메모</th><th></th></tr></thead>
+          <tbody id="data-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
