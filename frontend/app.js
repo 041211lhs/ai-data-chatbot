@@ -27,10 +27,12 @@ function escapeHtml(s) {
 // AI 답변의 간단한 마크다운(굵게, 목록, 줄바꿈)만 표시
 function renderMarkdown(text) {
   return escapeHtml(text)
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/^#{1,6}\s*(.+)$/gm, "<strong>$1</strong>")
-    .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>")
+    .replace(/^#{1,6}\s*(.+)$/gm, "**$1**")
+    .replace(/^\s{2,}[-*]\s+/gm, "&nbsp;&nbsp;&nbsp;&nbsp;◦ ") // 들여쓴 하위 목록
     .replace(/^[-*]\s+/gm, "• ")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>")
+    .replace(/`([^`\n]+)`/g, "<code>$1</code>")
     .replace(/\n/g, "<br>");
 }
 

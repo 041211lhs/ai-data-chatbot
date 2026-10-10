@@ -21,6 +21,7 @@ SYSTEM_TEMPLATE = """당신은 반도체 생산 데이터 분석 비서입니다
 - 연도별 평균: {yearly}
 - 메모(국면)별 구간 평균: {groups}
 - 최근 12개월 값: {recent}
+- 전체 월별 값(연월:지수): {series}
 
 [답변 규칙]
 - 위 데이터를 근거로 숫자와 날짜를 들어 한국어로 짧고 친절하게 답하세요.
@@ -35,7 +36,8 @@ def _client() -> OpenAI:
     return OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_BASE_URL, timeout=60)
 
 
-def build_system_prompt(summary: dict) -> str:
+def build_system_prompt(summary: dict, items: list[dict]) -> str:
+    """요약 + 전체 월별 값(115개월이라도 약 1천 토큰)을 넣어 특정 달 질문에도 답하게 한다."""
     dump = lambda x: json.dumps(x, ensure_ascii=False)
     return SYSTEM_TEMPLATE.format(
         unit=summary.get("unit"),
@@ -46,18 +48,20 @@ def build_system_prompt(summary: dict) -> str:
         yearly=dump(summary.get("yearly_average", {})),
         groups=dump(summary.get("memo_groups", [])),
         recent=dump(summary.get("recent_12", [])),
+        series=", ".join(f"{it['date']}:{it['value']}" for it in items),
     )
 
 
 def chat(message: str, conversation_id: str | None) -> dict:
     # 1) 데이터 요약 조회 (GET /api/data/summary 와 같은 계산)
-    summary = build_summary(data_service.list_data())
+    items = data_service.list_data()
+    summary = build_summary(items)
 
     # 2) 요약을 시스템 프롬프트에 삽입 + 이어지는 대화면 이전 메시지도 붙인다
     history = []
     if conversation_id:
         history = conversation_service.get_conversation(conversation_id)["messages"][-HISTORY_LIMIT:]
-    messages = [{"role": "system", "content": build_system_prompt(summary)}]
+    messages = [{"role": "system", "content": build_system_prompt(summary, items)}]
     messages += [{"role": m["role"], "content": m["content"]} for m in history]
     messages.append({"role": "user", "content": message})
 

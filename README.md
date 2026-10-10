@@ -7,9 +7,9 @@
 
 | 구분 | 주소 |
 |---|---|
-| 프론트엔드 (Vercel) | {{FRONTEND_URL}} |
-| 백엔드 API (Render) | {{BACKEND_URL}} |
-| Swagger UI | {{BACKEND_URL}}/docs |
+| 프론트엔드 (Vercel) | https://ai-data-chatbot-frontend.vercel.app |
+| 백엔드 API (Render) | https://ai-data-chatbot-rgp0.onrender.com |
+| Swagger UI | https://ai-data-chatbot-rgp0.onrender.com/docs |
 
 > 백엔드는 Render 무료 티어라서 15분 동안 요청이 없으면 잠든다. 첫 접속은 서버가 깨어나는 데 최대 1분 정도 걸리며, 화면 상단에 "서버를 깨우는 중" 안내와 진행 상태가 표시된다.
 
@@ -53,7 +53,7 @@
   → POST /api/chat
       1. Firestore data 컬렉션 전체 조회
       2. 요약 계산 (GET /api/data/summary 와 같은 함수)
-      3. 요약을 시스템 프롬프트의 [사용자 데이터 요약] 자리에 삽입
+      3. 요약과 전체 월별 값(약 1천 토큰)을 시스템 프롬프트의 [사용자 데이터 요약] 자리에 삽입
       4. 시스템 프롬프트 + 이전 대화(최근 10개) + 질문으로 GPT 호출
       5. 질문과 답변을 conversations 컬렉션에 자동 저장
   ← { conversation_id, reply }
@@ -71,7 +71,7 @@ GPT는 학습 데이터에 이 사용자의 데이터가 없다. 그래서 매 �
 - 총 레코드: {count}개
 - 주요 지표: {metrics}
 - 최근 트렌드: {trend}
-- 연도별 평균 / 메모(국면)별 구간 평균 / 최근 12개월 값
+- 연도별 평균 / 메모(국면)별 구간 평균 / 최근 12개월 값 / 전체 월별 값
 
 [답변 규칙] 숫자와 날짜를 근거로, 없는 값은 지어내지 말 것, 원인은 단정하지 말 것
 ```
