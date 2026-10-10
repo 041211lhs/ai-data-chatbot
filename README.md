@@ -226,3 +226,15 @@ python -m http.server 5500        # http://localhost:5500
 **4. Swagger UI**
 
 ![Swagger](docs/screenshots/04_swagger.png)
+
+**5. 답변을 기다리는 동안의 로딩 표시**
+
+![로딩](docs/screenshots/05_loading.png)
+
+**6. 보너스: 다크 모드와 그래프 툴팁**
+
+![다크 모드](docs/screenshots/06_dark_chart.png)
+
+**7. 모바일 화면 (탭 전환)**
+
+<img src="docs/screenshots/07_mobile.png" width="300" alt="모바일">
