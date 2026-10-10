@@ -60,8 +60,11 @@ async function wakeServer() {
       if (res.ok) {
         clearTimeout(slow);
         banner.hidden = true;
-        status.textContent = "서버 연결됨";
-        status.className = "pill ok";
+        const health = await res.json().catch(() => ({}));
+        const degraded = health.missing_env?.length;
+        status.textContent = degraded ? "서버 설정 누락" : "서버 연결됨";
+        status.className = degraded ? "pill err" : "pill ok";
+        if (degraded) status.title = "누락된 환경 변수: " + health.missing_env.join(", ");
         return true;
       }
     } catch (e) { /* 아직 깨어나는 중 */ }
@@ -154,13 +157,18 @@ async function sendMessage(text) {
     });
     loading.remove();
     addMessage("assistant", res.reply);
-    const isNew = !state.conversationId;
-    state.conversationId = res.conversation_id;
-    if (isNew) $("#chat-title").textContent = text.length > 30 ? text.slice(0, 30) + "…" : text;
-    loadConversations();
+    if (!res.saved) {
+      toast("답변은 받았지만 대화 기록 저장에 실패했어요", true);
+    } else {
+      const isNew = !state.conversationId;
+      state.conversationId = res.conversation_id;
+      if (isNew) $("#chat-title").textContent = text.length > 30 ? text.slice(0, 30) + "…" : text;
+      loadConversations();
+    }
   } catch (e) {
     loading.remove();
     addMessage("error", "답변을 받지 못했어요: " + e.message);
+    if (!$("#chat-input").value) { $("#chat-input").value = text; autoGrow(); } // 다시 보낼 수 있게 입력 복원
   } finally {
     state.sending = false;
     $("#send-btn").disabled = false;

@@ -74,5 +74,6 @@ class ChatRequest(BaseModel):
 
 
 class ChatResponse(BaseModel):
-    conversation_id: str
+    conversation_id: str | None
     reply: str
+    saved: bool = Field(True, description="대화 저장 성공 여부. 실패해도 답변은 돌려준다.")

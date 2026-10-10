@@ -1,5 +1,6 @@
 """AI 채팅: 데이터 요약을 시스템 프롬프트에 넣고(컨텍스트 주입) GPT를 호출한 뒤 대화를 저장한다."""
 import json
+import logging
 
 from openai import OpenAI, OpenAIError
 
@@ -7,6 +8,8 @@ from core.config import OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MAX_TOKENS, OPEN
 from services import conversation_service, data_service
 from services.errors import AIServiceError
 from services.summary_service import build_summary
+
+logger = logging.getLogger("uvicorn.error")
 
 HISTORY_LIMIT = 10  # 이전 대화는 최근 10개 메시지만 함께 보낸다(토큰 절약)
 
@@ -76,12 +79,17 @@ def chat(message: str, conversation_id: str | None) -> dict:
     if not reply:
         raise AIServiceError("AI가 빈 답변을 보냈다. OPENAI_MAX_TOKENS를 늘려 보라")
 
-    # 4) 대화 자동 저장
+    # 4) 대화 자동 저장. 저장이 실패해도 이미 받은 답변(토큰 비용)은 버리지 않고 saved=False로 알린다.
+    #    자동 재시도는 하지 않는다: 재시도하면 같은 메시지가 두 번 저장될 수 있기 때문이다.
     new_messages = [{"role": "user", "content": message}, {"role": "assistant", "content": reply}]
-    if conversation_id:
-        conversation_service.append_messages(conversation_id, new_messages)
-    else:
-        title = message if len(message) <= 30 else message[:30] + "…"
-        conversation_id = conversation_service.create_conversation(title, new_messages)["id"]
+    try:
+        if conversation_id:
+            conversation_service.append_messages(conversation_id, new_messages)
+        else:
+            title = message if len(message) <= 30 else message[:30] + "…"
+            conversation_id = conversation_service.create_conversation(title, new_messages)["id"]
+    except Exception:
+        logger.exception("대화 저장 실패")
+        return {"conversation_id": conversation_id, "reply": reply, "saved": False}
 
-    return {"conversation_id": conversation_id, "reply": reply}
+    return {"conversation_id": conversation_id, "reply": reply, "saved": True}

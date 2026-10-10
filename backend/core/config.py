@@ -22,3 +22,9 @@ ALLOWED_ORIGINS = [
     ).split(",")
     if o.strip()
 ]
+
+
+def missing_env() -> list[str]:
+    """비어 있는 필수 환경 변수 이름 목록. 값은 돌려주지 않는다."""
+    required = {"OPENAI_API_KEY": OPENAI_API_KEY, "FIREBASE_SERVICE_ACCOUNT_JSON": FIREBASE_SERVICE_ACCOUNT_JSON}
+    return [name for name, value in required.items() if not value.strip()]
